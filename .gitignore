@@ -42,3 +42,4 @@ next-env.d.ts
 
 # for some personal use i put readme file here will remove it later...
 README.md
+/src/generated/prisma
