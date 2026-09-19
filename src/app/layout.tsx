@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Space_Grotesk } from 'next/font/google'
-import { ClerkProvider, Show, UserButton } from '@clerk/nextjs'
+import { ClerkProvider, Show  } from '@clerk/nextjs'
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -14,27 +16,29 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "StackMate",
-  description: "",
+  description: " Autonomous AI Developer for GitHub",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
+    <ClerkProvider>
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("antialiased",  "font-primary", spaceGrotesk.variable)}
     >
       <body >
-        <ClerkProvider>
-          <header className="flex justify-end items-center">
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Show when="signed-out">
             </Show>
             <Show when="signed-in">
-              <UserButton />
             </Show>
-          </header>
-          {children}
-        </ClerkProvider>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </ThemeProvider>
         </body>
     </html>
+    </ClerkProvider>
   );
 }
