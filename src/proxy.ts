@@ -3,6 +3,7 @@ import { clerkMiddleware } from '@clerk/nextjs/server';
 const publicRoutes = [
     /^\/signin(\/.*)?$/,
     /^\/signup(\/.*)?$/,
+    /^\/sync-user$/, 
 ];
 
 export default clerkMiddleware(async (auth, request) => {
