@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { db } from "@/server/db";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function syncUserToDb() {
