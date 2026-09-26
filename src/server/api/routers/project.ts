@@ -3,7 +3,7 @@ import {z} from "zod";
 
 const projectSchema = z.object({
     name: z.string(),
-    githubUrl : z.string(),
+    githubUrl : z.string().url(),
     githubToken : z.string().optional()
 })
 
@@ -19,7 +19,7 @@ export const projectRouter = createTRPCRouter({
                         userId: ctx.user.userId!,
                     }
                 }
-            }
+            }    
         })
         return project;
     }),

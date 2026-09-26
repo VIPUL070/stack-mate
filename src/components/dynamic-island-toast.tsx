@@ -47,7 +47,7 @@ export default function DynamicIslandToast() {
               damping: 30,
               mass: 0.8,
             }}
-            className="pointer-events-auto cursor-grab relative flex items-center gap-3.5 px-4 py-2.5 bg-black/95 text-white rounded-full border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-2xl max-w-[calc(100vw-32px)] sm:max-w-md"
+            className="pointer-events-auto cursor-grab relative flex items-center gap-3.5 px-4 py-2.5 bg-foreground text-secondary rounded-full border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-2xl max-w-[calc(100vw-32px)] sm:max-w-md"
           >
             {/* Morphing status icon with subtle glow */}
             <div className="relative flex items-center justify-center">
@@ -93,7 +93,7 @@ export default function DynamicIslandToast() {
             ) : (
               <button
                 onClick={() => islandToast.dismiss(activeToast.id)}
-                className="shrink-0 p-1 text-neutral-400 hover:text-white rounded-full transition-colors"
+                className="shrink-0 p-1 text-neutral-400 hover:text-secondary rounded-full transition-colors"
                 aria-label="Dismiss"
               >
                 <X className="w-3.5 h-3.5" />
