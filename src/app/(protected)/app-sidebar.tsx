@@ -14,27 +14,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { SIDEBAR_APP_ITEMS } from "@/constants/sidebar";
+import useProject from "@/hooks/use-project";
 import { cn } from "cn";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const SIDEBAR_PROJECT_ITEMS = [
-  {
-    name: "Project-1",
-  },
-  {
-    name: "Project-2",
-  },
-  {
-    name: "Project-3",
-  },
-];
 
 const AppSidebar = () => {
   const pathname = usePathname();
   const { open } = useSidebar();
+  const { projects, projectId, setProjectId } = useProject();
+
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader className="p-2 mb-2 font-semibold">
@@ -57,10 +49,10 @@ const AppSidebar = () => {
             Application
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={cn('flex flex-col gap-2')}>
               {SIDEBAR_APP_ITEMS.map((item) => {
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} >
                     <SidebarMenuButton
                       className={cn(
                         {
@@ -89,24 +81,24 @@ const AppSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {SIDEBAR_PROJECT_ITEMS.map((item) => {
+              {projects?.map((project) => {
                 return (
-                  <SidebarMenuItem key={item.name}>
+                  <SidebarMenuItem key={project.name}>
                     <SidebarMenuButton className={cn("cursor-pointer", {
                       "flex items-center justify-center" : !open
-                    })}>
+                    })}  onClick={() => setProjectId(project.id)}>
                       <div className="flex items-center justify-center gap-2 text-13px">
                         <div
                           className={cn(
-                            "rounded-sm border size-6 flex items-center justify-center text-sm bg-white text-active-primary",
+                            "rounded-sm border size-6 flex items-center justify-center text-sm bg-background text-active-primary",
                             {
-                              "bg-active-primary! text-active-text!": true,
+                              "bg-active-primary! text-active-text!": project?.id === projectId,
                             }
                           )}
                         >
-                          {item.name[0]}
+                          {project.name[0].toUpperCase()}
                         </div>
-                        {open && <span>{item.name}</span>}
+                        {open && <span>{project.name}</span>}
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
