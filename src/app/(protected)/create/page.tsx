@@ -2,15 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useRefetch from "@/hooks/use-refetch";
 import { islandToast } from "@/lib/toast";
 import { api } from "@/trpc/react";
-import { CreateFormInput } from "@/types/create-form-input";
+import { CreateFormInput } from "@/types/create-project";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 
 const CreatePage = () => {
   const { register, handleSubmit, reset } = useForm<CreateFormInput>();
   const createProject = api.project.createProject.useMutation();
+  const refetch = useRefetch();
 
   function onSubmit(data: CreateFormInput) {
     islandToast.loading("Linking Repository...", {
@@ -28,6 +30,7 @@ const CreatePage = () => {
           islandToast.success("Project Created", {
             description: `${data.projectName} is ready to use`,
           });
+          refetch();
           reset();
         },
         onError: (error) => {
