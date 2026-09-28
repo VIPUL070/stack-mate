@@ -1,6 +1,7 @@
 import { pollCommit } from "@/lib/github";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
+import { indexGithubRepo } from "@/lib/github-loader";
 
 const projectSchema = z.object({
     name: z.string(),
@@ -26,6 +27,7 @@ export const projectRouter = createTRPCRouter({
                     }
                 }
             })
+            indexGithubRepo(project.id, input.githubUrl, input.githubToken).then().catch((err) => console.error("index github repo failed:", err))
             pollCommit(project.id).catch(err => console.error("pollCommit failed:", err));
             return project;
         }),
@@ -47,7 +49,7 @@ export const projectRouter = createTRPCRouter({
         .query(async ({ ctx, input }) => {
             try {
                 pollCommit(input.projectId).then().catch(err => console.error("pollCommit failed:", err));
-                
+
                 return await ctx.db.commit.findMany({
                     where: {
                         projectId: input.projectId

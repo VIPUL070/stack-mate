@@ -1,9 +1,11 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
+  extensions = [vector]
 }
 
 model User {
@@ -19,22 +21,23 @@ model User {
 }
 
 model Project {
-  id             String          @id @default(cuid())
-  name           String
-  githubUrl      String
-  githubToken    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  deletedAt      DateTime?
-  userToProjects UserToProject[]
-  commits        Commit[]
+  id                   String                 @id @default(cuid())
+  name                 String
+  githubUrl            String
+  githubToken          String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  deletedAt            DateTime?
+  userToProjects       UserToProject[]
+  commits              Commit[]
+  sourceCodeEmbeddings SourceCodeEmbedding[]
 }
 
 model UserToProject {
   id        String  @id @default(cuid())
   userId    String
   projectId String
-  user      User    @relation(fields: [userId], references: [id] , onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -55,4 +58,16 @@ model Commit {
   summary            String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model SourceCodeEmbedding {
+  id               String                      @id @default(cuid())
+  summaryEmbedding Unsupported("vector(768)")?
+  sourceCode       String
+  fileName         String
+  summary          String
+  projectId        String
+  project          Project                     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
 }
