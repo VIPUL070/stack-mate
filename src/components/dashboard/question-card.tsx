@@ -11,6 +11,9 @@ import { askQuestion } from "@/app/(protected)/dashboard/actions";
 import { FileReference } from "@/types/ask-question";
 import MDEditor from "@uiw/react-md-editor";
 import CodeReferences from "./code-references";
+import { api } from "@/trpc/react";
+import { islandToast } from "@/lib/toast";
+import useRefetch from "@/hooks/use-refetch";
 
 const QuestionCard = () => {
   const { project } = useProject();
@@ -20,6 +23,34 @@ const QuestionCard = () => {
   const [filesReferences, setFilesReferences] = useState<FileReference[]>([]);
   const [output, setOutput] = useState<string>("");
   const [error, setError] = useState("");
+
+  const refetch = useRefetch();
+
+  const saveAnswer = api.project.saveOutput.useMutation();
+  const saveOutput = () => {
+    islandToast.loading("Linking DB...", {
+      description: "Connecting your DB to StackMate",
+    });
+    saveAnswer.mutate({
+      projectId: project!.id,
+      question,
+      output,
+      filesReferences,
+    }, {
+      onSuccess: () => {
+        islandToast.success(`Answer is saved!` , {
+          description: `   `
+        });
+        refetch();
+      }, 
+      onError: () => {
+        islandToast.error(`Unable to save the answer`, {
+          description: `   `
+        })
+      }
+    }
+  );
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setOutput("");
@@ -55,9 +86,14 @@ const QuestionCard = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[50vw]">
           <DialogHeader>
-            <DialogTitle>
-              <Image src="/logo.png" alt="logo" width={32} height={32} />
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle>
+                <Image src="/logo.png" alt="logo" width={32} height={32} />
+              </DialogTitle>
+              <Button variant={`outline`} onClick={saveOutput} disabled={saveAnswer.isPending}>
+                Save Answer
+              </Button>
+            </div>
           </DialogHeader>
 
           <MDEditor.Markdown
@@ -86,6 +122,7 @@ const QuestionCard = () => {
             <Button type="submit" disabled={loading}>
               Ask Stackmate!
             </Button>
+            {error ?? <span className="text-rose-500 m-2">{error}</span>}
           </form>
         </CardContent>
       </Card>
