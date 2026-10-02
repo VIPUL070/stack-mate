@@ -1,12 +1,15 @@
 "use client";
 
 import CommitLogs from "@/components/dashboard/commit-log";
+import MeetingCard from "@/components/dashboard/meeting-card";
+import QuestionCard from "@/components/dashboard/question-card";
 import useProject from "@/hooks/use-project";
 import { ExternalLink, GitBranch } from "lucide-react";
 import Link from "next/link";
 
 const Dashboard = () => {
   const { project } = useProject();
+  console.log(project)
   return (
     <div>
       <div className="flex items-center justify-between flex-wrap gap-y-4">
@@ -39,9 +42,9 @@ const Dashboard = () => {
       </div>
 
       <div className="mt-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
-          Ask question card
-          meeting card
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-7">
+          <QuestionCard />
+          <MeetingCard />
         </div>
       </div>
 

@@ -23,7 +23,7 @@ const CreatePage = () => {
       {
         githubUrl: data.repoUrl,
         name: data.projectName,
-        githubToken: data.githubToken,
+        githubToken: data.githubToken || undefined,
       },
       {
         onSuccess: () => {
