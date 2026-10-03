@@ -31,25 +31,27 @@ const QuestionCard = () => {
     islandToast.loading("Linking DB...", {
       description: "Connecting your DB to StackMate",
     });
-    saveAnswer.mutate({
-      projectId: project!.id,
-      question,
-      output,
-      filesReferences,
-    }, {
-      onSuccess: () => {
-        islandToast.success(`Answer is saved!` , {
-          description: `   `
-        });
-        refetch();
-      }, 
-      onError: () => {
-        islandToast.error(`Unable to save the answer`, {
-          description: `   `
-        })
+    saveAnswer.mutate(
+      {
+        projectId: project!.id,
+        question,
+        output,
+        filesReferences,
+      },
+      {
+        onSuccess: () => {
+          islandToast.success(`Answer is saved!`, {
+            description: `   `,
+          });
+          refetch();
+        },
+        onError: () => {
+          islandToast.error(`Unable to save the answer`, {
+            description: `   `,
+          });
+        },
       }
-    }
-  );
+    );
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -90,7 +92,11 @@ const QuestionCard = () => {
               <DialogTitle>
                 <Image src="/logo.png" alt="logo" width={32} height={32} />
               </DialogTitle>
-              <Button variant={`outline`} onClick={saveOutput} disabled={saveAnswer.isPending}>
+              <Button
+                variant={`outline`}
+                onClick={saveOutput}
+                disabled={saveAnswer.isPending}
+              >
                 Save Answer
               </Button>
             </div>
@@ -108,7 +114,7 @@ const QuestionCard = () => {
           </Button>
         </DialogContent>
       </Dialog>
-      <Card className="relative col-span-4">
+      <Card className="relative flex flex-col sm:col-span-3">
         <CardHeader>
           <CardTitle>Ask a question</CardTitle>
         </CardHeader>
@@ -116,13 +122,16 @@ const QuestionCard = () => {
           <form onSubmit={onSubmit}>
             <Textarea
               placeholder="Which file should I edit to change the home page?"
-              onChange={(e) => setQuestion(e.target.value ?? "")}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
             />
             <div className="h-4" />
-            <Button type="submit" disabled={loading}>
-              Ask Stackmate!
-            </Button>
-            {error ?? <span className="text-rose-500 m-2">{error}</span>}
+            <div className="flex justify-start">
+              <Button type="submit" disabled={loading}>
+                Ask Stackmate!
+              </Button>
+            </div>
+            {error && <p className="mt-2 text-sm text-rose-500">{error}</p>}
           </form>
         </CardContent>
       </Card>
