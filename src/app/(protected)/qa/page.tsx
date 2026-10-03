@@ -21,7 +21,7 @@ const QAPage = () => {
     <Sheet>
        <QuestionCard />
        <div className="h-4" />
-       <h1 className="text-xl font-semibold">Saved Questions</h1>
+       <h1 className="text-xl ">Saved Questions</h1>
        <div className="h-2"/>
        <div className="flex flex-col gap-2">
           {questions?.map((question,i) => {
