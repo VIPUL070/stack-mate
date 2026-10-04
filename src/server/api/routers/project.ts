@@ -3,6 +3,10 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { indexGithubRepo } from "@/lib/github-loader";
 
+const commonSchema = z.object({
+    projectId: z.string(),
+})
+
 const projectSchema = z.object({
     name: z.string(),
     githubUrl: z.string().url(),
@@ -22,6 +26,12 @@ const outputSchema = z.object({
 
 const questionSchema = z.object({
     projectId: z.string(),
+})
+
+const meetingSchema = z.object({
+    projectId: z.string(),
+    meetingUrl : z.string(),
+    name: z.string()
 })
 
 export const projectRouter = createTRPCRouter({
@@ -127,6 +137,43 @@ export const projectRouter = createTRPCRouter({
                console.error(`Failed to fetch questions for project ${input.projectId}:`, error);
                 throw new Error(
                     `Failed to fetch questions: ${error instanceof Error ? error.message : "Unknown error"}`
+                ); 
+            }
+        }),
+    uploadMeeting: protectedProcedure.input(meetingSchema)
+        .mutation(async ({ctx, input}) => {
+            try {
+                const meeting = await ctx.db.meeting.create({
+                    data: {
+                       meetingUrl : input.meetingUrl,
+                       projectId: input.projectId,
+                       name: input.name,
+                       status : "PROCESSING"
+                    }
+                })
+            } catch (error) {
+               console.error(`Failed to save meeting for project ${input.projectId}:`, error);
+                throw new Error(
+                    `Failed to save meeting: ${error instanceof Error ? error.message : "Unknown error"}`
+                ); 
+            }
+        }),
+
+    getMeetings: protectedProcedure.input(commonSchema)
+        .query(async ({ctx, input}) => {
+            try {
+                return await ctx.db.meeting.findMany({
+                    where : {
+                        projectId: input.projectId
+                    },
+                    include: {
+                        issues: true
+                    }
+                })
+            } catch (error) {
+                console.error(`Failed to fetch meeting for project ${input.projectId}:`, error);
+                throw new Error(
+                    `Failed to fetch meeting: ${error instanceof Error ? error.message : "Unknown error"}`
                 ); 
             }
         })
