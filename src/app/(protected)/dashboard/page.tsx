@@ -42,7 +42,7 @@ const Dashboard = () => {
       </div>
 
       <div className="mt-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-7">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
           <QuestionCard />
           <MeetingCard />
         </div>
