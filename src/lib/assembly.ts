@@ -12,6 +12,7 @@ export const processMeeting = async (meetingUrl: string) => {
   const transcript = await client.transcripts.transcribe({
     audio: meetingUrl,
     auto_chapters: true,
+    
   });
 
   if (transcript.status === "error") {
