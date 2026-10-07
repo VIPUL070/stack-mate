@@ -4,6 +4,8 @@ import MeetingCard from "@/components/dashboard/meeting-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import useProject from "@/hooks/use-project";
+import useRefetch from "@/hooks/use-refetch";
+import { islandToast } from "@/lib/toast";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
@@ -12,9 +14,28 @@ const MeetingsPage = () => {
   const { data: meetings, isLoading } = api.project.getMeetings.useQuery(
     { projectId },
     {
-      refetchInterval: 20000,
+      refetchInterval: 10000,
     }
   );
+  const deleteMeeting = api.project.deleteMeeting.useMutation();
+  const refetch = useRefetch();
+
+  const handleDeleteMeeting = (meetingId: string) => {
+    deleteMeeting.mutate(
+      {
+        meetingId,
+      },
+      {
+        onSuccess: () => {
+          islandToast.success("Meeting deleted successfully!");
+          refetch();
+        },
+        onError: () => {
+          islandToast.error("Meeting deletion failed");
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -38,8 +59,13 @@ const MeetingsPage = () => {
                       {meeting.name}
                     </Link>
                     {meeting.status === "PROCESSING" && (
-                      <Badge className="bg-yellow-300 text-active-text">
+                      <Badge className="bg-yellow-500 text-active-text p-2.5 text-xs">
                         Processing...
+                      </Badge>
+                    )}
+                    {meeting.status === "COMPLETED" && (
+                      <Badge className="bg-green-500 text-active-text p-2.5 text-xs">
+                        Completed
                       </Badge>
                     )}
                   </div>
@@ -52,10 +78,17 @@ const MeetingsPage = () => {
                   <p className="truncate">{meeting.issues.length} issues</p>
                 </div>
               </div>
-              <div className="flex items-center flex-none gapx-4">
+              <div className="flex items-center flex-none gap-x-4">
                 <Link href={`/meetings/${meeting.id}`}>
-                  <Button>View</Button>
+                  <Button >View Meeting</Button>
                 </Link>
+                <Button
+                  variant={`destructive`}
+                  disabled={deleteMeeting.isPending}
+                  onClick={() => handleDeleteMeeting(meeting.id)}
+                >
+                  Delete Meeting
+                </Button>
               </div>
             </li>
           );

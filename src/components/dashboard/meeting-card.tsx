@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useCallback, useState } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
@@ -10,13 +10,51 @@ import { api } from "@/trpc/react";
 import useProject from "@/hooks/use-project";
 import { islandToast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { MeetingProps } from "@/types/meeting";
+import axios, { isAxiosError } from "axios";
 
 const MeetingCard = () => {
-  const {project} = useProject();
+  const { project } = useProject();
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const uploadtMeeting = api.project.uploadMeeting.useMutation();
   const router = useRouter();
+
+  const handleProcessMeeting = async ({
+    meetingUrl,
+    meetingId,
+  }: MeetingProps) => {
+    try {
+      if (!meetingUrl || !meetingId) return;
+
+      const response = await axios.post(`/api/process-meeting`, {
+        meetingUrl,
+        meetingId,
+      });
+
+      return response.data;
+    } catch (err) {
+      if (isAxiosError(err)) {
+        console.log(err.response?.data.message);
+      } else if (err instanceof Error) {
+        console.log(err?.message);
+      } else {
+        console.log(err ?? "Something went wrong");
+      }
+      throw err;
+    }
+  };
+
+  const processMeeting = useMutation({
+    mutationFn: handleProcessMeeting,
+    onSuccess: () => {
+    islandToast.success("Meeting processed successfully!");
+  },
+  onError: () => {
+    islandToast.error("Meeting processing failed");
+  },
+  });
 
   const onDrop = useCallback(
     async (accepted: File[], rejected: FileRejection[]) => {
@@ -41,12 +79,17 @@ const MeetingCard = () => {
             name: file.name,
           },
           {
-            onSuccess: () => {
+            onSuccess: (meeting) => {
               islandToast.success("Meeting uploaded successfully!");
               router.push("/meetings");
+              processMeeting.mutateAsync(
+                {
+                  meetingUrl: downloadUrl,
+                  meetingId: meeting.id,
+                });
             },
             onError: () => {
-              islandToast.error("Meeting uploaded successfully!");
+              islandToast.error("Meeting upload failed!");
             },
           }
         );
@@ -56,7 +99,7 @@ const MeetingCard = () => {
         setIsUploading(false);
       }
     },
-    [project, router, uploadtMeeting]
+    [project, router, uploadtMeeting, processMeeting]
   );
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -84,7 +127,7 @@ const MeetingCard = () => {
             Powered by AI.
           </p>
           <div className="mt-3">
-            <Button type="button" disabled= {isUploading}>
+            <Button type="button" disabled={isUploading}>
               <Upload className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
               Upload Meeting
               <input className="hidden" {...getInputProps()} />
@@ -92,12 +135,13 @@ const MeetingCard = () => {
           </div>
 
           {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
-          
         </>
       ) : (
         <>
           <Loader2 className="h-10 w-10 animate-spin" />
-          <p className="mt-2 text-sm text-gray-500">Uploading your meeting...</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Uploading your meeting...
+          </p>
         </>
       )}
     </Card>
