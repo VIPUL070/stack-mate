@@ -1,15 +1,18 @@
 "use client";
 
+import Archive from "@/components/dashboard/archive-button";
 import CommitLogs from "@/components/dashboard/commit-log";
+import Invite from "@/components/dashboard/invite-button";
 import MeetingCard from "@/components/dashboard/meeting-card";
 import QuestionCard from "@/components/dashboard/question-card";
+import SyncCommit from "@/components/dashboard/sync-commits";
+import TeamMembers from "@/components/dashboard/team-members";
 import useProject from "@/hooks/use-project";
 import { ExternalLink, GitBranch } from "lucide-react";
 import Link from "next/link";
 
 const Dashboard = () => {
   const { project } = useProject();
-  console.log(project)
   return (
     <div>
       <div className="flex items-center justify-between flex-wrap gap-y-4">
@@ -35,9 +38,10 @@ const Dashboard = () => {
         <div className="h-4"></div>
         {/* members , link and archive */}
         <div className="flex items-center gap-4">
-          Team Members
-          Invite Button
-          Archive button 
+          <TeamMembers />
+          <Invite />
+          <Archive />
+          <SyncCommit />
         </div>
       </div>
 
