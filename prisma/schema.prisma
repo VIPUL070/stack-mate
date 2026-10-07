@@ -12,6 +12,11 @@ enum MeetingStatus {
   PROCESSING
   COMPLETED
 }
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+}
 
 model User {
   id             String          @id @default(cuid())
@@ -24,6 +29,7 @@ model User {
   updatedAt      DateTime        @updatedAt
   userToProjects UserToProject[]
   questionsAsked Question[]
+  orders         Order[]
 }
 
 model Project {
@@ -116,4 +122,18 @@ model Issue {
   meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credits    Int
+  amount            Int        
+  currency          String      @default("INR")
+  status            OrderStatus @default(PENDING)
+  razorpayOrderId   String      @unique
+  razorpayPaymentId String?     @unique
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
