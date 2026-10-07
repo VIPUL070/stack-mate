@@ -10,3 +10,7 @@ export interface ProjectProps {
     name: string;
     githubToken?: string;
 }
+
+export interface JoinProps {
+    params : Promise<{projectId: string}>
+}
