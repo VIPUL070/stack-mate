@@ -7,6 +7,14 @@ export function parseGithubUrl(url: string) {
   return { owner, repo: repo.replace(/\.git$/, "") };
 }
 
+export const msToTime = (ms: number) => {
+    const seconds = ms / 1000;
+    const mins = Math.floor(seconds / 60);
+    const remainingSecs = Math.floor(seconds % 60);
+
+    return `${mins.toString().padStart(2,'0')}: ${remainingSecs.toString().padStart(2,'0')}`
+}
+
 // Sliding-window limiter: strictly enforces max 5 API calls per 60 seconds
 const requestTimestamps: number[] = [];
 const MAX_RPM = 5;
