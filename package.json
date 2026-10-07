@@ -47,6 +47,7 @@
     "octokit": "^5.0.5",
     "p-limit": "^7.3.3",
     "prisma": "^7.10.0",
+    "razorpay": "^2.9.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-dropzone": "^20.1.2",
