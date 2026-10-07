@@ -34,8 +34,8 @@ export const createCallerFactory = t.createCallerFactory;
 
 // Later, for auth:
 export const isAuthenticated = t.middleware(async ({ next, ctx }) => {
-    const user = await auth();
-    if (!user) {
+    const {userId} = await auth();
+    if (!userId) {
         throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "You must be logged in to access this resource."
@@ -44,7 +44,7 @@ export const isAuthenticated = t.middleware(async ({ next, ctx }) => {
     return next({
         ctx: {
             ...ctx,
-            user
+            userId
         }
     })
 })
