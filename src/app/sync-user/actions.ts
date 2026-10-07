@@ -18,7 +18,6 @@ export async function syncUserToDb() {
   await db.user.upsert({
     where: {
       emailAddress: user.emailAddresses[0]?.emailAddress ?? "",
-      id: userId
     },
     update: {
       imageUrl: user.imageUrl,
@@ -27,7 +26,7 @@ export async function syncUserToDb() {
     },
     create: {
       id: userId,
-      emailAddress: user.emailAddresses[0]?.emailAddress ?? "",
+      emailAddress: email,
       imageUrl: user.imageUrl,
       firstName: user.firstName,
       lastName: user.lastName,
