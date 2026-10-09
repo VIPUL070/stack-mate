@@ -1,15 +1,16 @@
 'use server';
 
 import { streamText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { generateEmbedding } from '@/lib/gemini';
 import { db } from '@/server/db';
-import { enforceRateLimit } from '@/lib/utils';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { generateLimiter } from '@/lib/utils';
+
+const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function askQuestion(question: string, projectId: string) {
     try {
         // 1. Check rate limit & generate embedding (Request 1)
-        enforceRateLimit();
         const queryVector = await generateEmbedding(question);
 
         if (!queryVector || queryVector.length === 0) {
@@ -32,8 +33,7 @@ export async function askQuestion(question: string, projectId: string) {
             context += `Source File: ${doc.fileName}\nCode:\n${doc.sourceCode}\nSummary: ${doc.summary}\n\n`;
         }
 
-        // 3. Check rate limit & stream answer (Request 2)
-        enforceRateLimit();
+        await generateLimiter();
 
         const { textStream } = streamText({
             model: google(`gemini-3.5-flash-lite`),

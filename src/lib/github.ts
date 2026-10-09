@@ -20,6 +20,7 @@ export const getCommitHash = async (githubUrl: string) => {
         const { data } = await octokit.rest.repos.listCommits({
             owner,
             repo,
+            per_page: 5,
             request: { timeout: 10000 }
         });
 
@@ -67,7 +68,7 @@ const filterUnprocessedCommits = async (projectId: string, commitHashes: GithubR
 
     try {
         const processedCommits = await db.commit.findMany({
-            where: { projectId },
+            where: { projectId, summary: { not: "" } },
             select: { commitHash: true },
         });
 
@@ -98,47 +99,60 @@ export const pollCommit = async (projectId: string) => {
         const commitHashes = await getCommitHash(githubUrl);
         const unprocessedCommits = await filterUnprocessedCommits(projectId, commitHashes)
 
+        if (unprocessedCommits.length === 0) {
+            return [];
+        }
+
         // process one commit at a time, with a gap between calls,
         // so we never exceed 5 requests/minute on the free tier
-        const summaries: string[] = [];
+        const successfulCommits: {
+            projectId: string;
+            commitHash: string;
+            commitMessage: string;
+            commitAuthorName: string;
+            commitAuthorAvatar: string;
+            commitDate: Date;
+            summary: string;
+        }[] = [];
+
+        // Process sequentially with delay to stay within the 5 RPM Free Tier limit
         for (const commit of unprocessedCommits) {
-            const summary = await summarizeCommit(githubUrl, commit.commitHash);
-            summaries.push(summary ?? "");
-            await new Promise((res) => setTimeout(res, 13000));
+            const summary = await summarizeCommit(
+                githubUrl,
+                commit.commitHash,
+            );
+
+            if (summary && summary.trim().length > 0) {
+                successfulCommits.push({
+                    projectId,
+                    commitHash: commit.commitHash,
+                    commitMessage: commit.commitMessage,
+                    commitAuthorName: commit.commitAuthorName,
+                    commitAuthorAvatar: commit.commitAuthorAvatar,
+                    commitDate: commit.commitDate
+                        ? new Date(commit.commitDate)
+                        : new Date(),
+                    summary,
+                });
+            }
+
+            await new Promise((res) => setTimeout(res, 14000));
         }
 
         // save this summary in the db of commit table
-        let commits;
-        try {
-            console.log("start save in db")
-
-            commits = await db.commit.createMany({
-                data: summaries.map((summary, i) => {
-                    console.log(`processing commit: ${i}`)
-                    return {
-                        projectId: projectId,
-                        commitHash: unprocessedCommits[i]!.commitHash,
-                        commitMessage: unprocessedCommits[i]!.commitMessage,
-                        commitAuthorName: unprocessedCommits[i]!.commitAuthorName,
-                        commitAuthorAvatar: unprocessedCommits[i]!.commitAuthorAvatar,
-                        commitDate: new Date(unprocessedCommits[i]!.commitDate),
-                        summary
-                    }
-                }),
+        if (successfulCommits.length > 0) {
+            await db.commit.createMany({
+                data: successfulCommits,
                 skipDuplicates: true,
-            })
-        } catch (error) {
-            console.error(`Failed to add commitSummary:`, error);
-            throw new Error(
-                `Failed to save commitSummary: ${error instanceof Error ? error.message : "Unknown error"}`
-            );
+            });
         }
-        return commits;
+       
+       return successfulCommits;
 
-    } catch (error) {
-        console.error(`pollCommit failed for project ${projectId}:`, error);
-        throw error;
-    }
+} catch (error) {
+    console.error(`pollCommit failed for project ${projectId}:`, error);
+    throw error;
+}
 };
 
 
@@ -148,11 +162,18 @@ const summarizeCommit = async (githubUrl: string, commitHash: string) => {
     console.log("start summarize commit")
 
     try {
+        const headers: Record<string, string> = {
+            Accept: "application/vnd.github.v3.diff",
+        };
+
+        const token = process.env.GITHUB_TOKEN;
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
-            headers: {
-                Accept: 'application/vnd.github.v3.diff',
-                timeout: 10000,
-            }
+            headers,
+            timeout: 10000,
         })
 
         const summary = await aiSummarizeCommit(data) || "";
@@ -167,5 +188,6 @@ const summarizeCommit = async (githubUrl: string, commitHash: string) => {
         else {
             console.log(error ?? "Something went wrong")
         }
+        return "";
     }
 }

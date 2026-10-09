@@ -1,8 +1,80 @@
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
-import { Document } from "@langchain/core/documents";
 import { generateEmbedding, summariseCode } from "./gemini";
 import pLimit from 'p-limit';
 import { db } from "@/server/db";
+import { Octokit } from "octokit";
+import { parseGithubUrl } from "./utils";
+
+const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+});
+
+export const getFileCount = async (path:string, octokit:Octokit, owner:string, repo:string, acc:number = 0) => {
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+    });
+
+    if (!Array.isArray(data) && data.type === 'file') {
+      return acc + 1;
+    }
+
+    if (Array.isArray(data)) {
+      let fileCount = 0;
+      const dirs: string[] = [];
+
+      for (const item of data) {
+        if (item.type === 'dir') {
+          dirs.push(item.path);
+        } else {
+          fileCount++;
+        }
+      }
+
+      if (dirs.length > 0) {
+        const subdirectoryCounts = await Promise.all(
+          dirs.map((directoryPath) =>
+            getFileCount(directoryPath, octokit, owner, repo, 0 )
+          )
+        );
+
+        fileCount += subdirectoryCounts.reduce((acc, count) => acc + count, 0);
+      }
+
+      return fileCount + acc;
+    }
+
+    return acc;
+  } catch (error) {
+    console.log('Failed to get file count.', error);
+    throw new Error(
+      `Failed to get file count: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+};
+
+export const checkCredits = async (githubUrl: string, githubToken?: string) => {
+    // how many total files are there in a repo
+    try {
+        if (!githubUrl) {
+        throw new Error("No GitHub URL");
+    }
+       const { owner, repo } = parseGithubUrl(githubUrl);
+       if (!owner || !repo) {
+        throw new Error("No GitHub Owner and Repo Found.");
+    }
+
+    const fileCount = await getFileCount('',octokit,owner,repo,0)
+    return fileCount;
+    } catch (error) {
+        console.log('Failed to check credits.', error)
+        throw new Error(
+            `Failed to check credits: ${error instanceof Error ? error.message : "Unknown error"}`
+        )
+    }
+}
 
 export const loadGithubRepo = async (githubUrl: string, githubToken?: string) => {
     if (!githubUrl) {
@@ -12,45 +84,24 @@ export const loadGithubRepo = async (githubUrl: string, githubToken?: string) =>
         const loader = new GithubRepoLoader(githubUrl, {
             accessToken: githubToken || "",
             branch: "main",
-            ignoreFiles: [
-                // Lock files
-                "package-lock.json",
-                "yarn.lock",
-                "pnpm-lock.yaml",
-                "bun.lockb",
-
-                // Environment & Secret files
-                ".env",
-                ".env.local",
-                ".env.development",
-                ".env.production",
-
-                // Build & Cache outputs
-                "dist",
-                "build",
-                ".next",
-                "out",
-                ".cache",
-
-                // IDE & System files
-                ".DS_Store",
-                "Thumbs.db",
-                ".vscode",
-                ".idea",
-            ],
             recursive: true,
             unknown: 'warn',
             maxConcurrency: 5
         })
         const docs = await loader.load();
+
         const ignoredExtensions = [
-            ".png", ".jpg", ".jpeg", ".gif", ".ico",
-            ".svg", ".pdf", ".zip", ".mp4", ".woff", ".woff2"
+            ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg",
+            ".pdf", ".zip", ".mp4", ".woff", ".woff2", ".lock",
         ];
+        const ignoredPaths = ["node_modules/", ".next/", "dist/", "build/"];
 
         return docs.filter((doc) => {
-            const source = doc.metadata.source?.toLowerCase() || "";
-            return !ignoredExtensions.some((ext) => source.endsWith(ext));
+            const source = (doc.metadata.source || "").toLowerCase();
+            const isIgnoredExt = ignoredExtensions.some((ext) => source.endsWith(ext));
+            const isIgnoredPath = ignoredPaths.some((p) => source.includes(p));
+            const hasContent = Boolean(doc.pageContent?.trim());
+            return !isIgnoredExt && !isIgnoredPath && hasContent;
         });
     } catch (error) {
         console.log('Loading GithubRepo Error', error)
@@ -60,74 +111,64 @@ export const loadGithubRepo = async (githubUrl: string, githubToken?: string) =>
     }
 }
 
-export const indexGithubRepo = async (projectId: string, githubUrl: string, githubToken?: string) => {
-    if (!githubUrl || !projectId) {
-        throw new Error("GitHub URL and Project Id is required");
-    }
-    try {
-        const docs = await loadGithubRepo(githubUrl, githubToken);
-        const allEmbeddings = await generateEmbeddings(docs);
+export const indexGithubRepo = async (
+  projectId: string,
+  githubUrl: string,
+  githubToken?: string
+) => {
+  if (!githubUrl || !projectId) {
+    throw new Error("GitHub URL and Project Id is required");
+  }
 
-        const limitDb = pLimit(10);
-        await Promise.allSettled(allEmbeddings.map((embedding, i) =>
+  const allDocs = await loadGithubRepo(githubUrl, githubToken);
 
-            limitDb(async () => {
-                if (!embedding || !embedding.summary) return;
-                console.log(`Processing DB persistence ${i + 1} of ${allEmbeddings.length}`);
+  const existing = await db.sourceCodeEmbedding.findMany({
+    where: { projectId },
+    select: { fileName: true },
+  });
+  const done = new Set(existing.map((e) => e.fileName));
+  const docs = allDocs.filter((d) => !done.has(d.metadata.source as string));
 
-                try {
-                    const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
-                        data: {
-                            summary: embedding.summary,
-                            projectId,
-                            sourceCode: embedding.sourceCode,
-                            fileName: embedding.fileName
-                        }
-                    })
+  const limit = pLimit(2);
+  const failed: string[] = [];
+  let saved = 0;
 
-                    await db.$executeRaw`
-            UPDATE "SiurceCodeEmbedding"
-            SET "summaryEmbedding" = ${embedding.embedding}::vector
-            WHERE id = ${sourceCodeEmbedding.id}
-          `;
-                } catch (error) {
-                    console.log('Save to DB Error', error)
-                    throw new Error(
-                        `Failed to save embedding to db: ${error instanceof Error ? error.message : "Unknown error"}`
-                    )
-                }
+  await Promise.all(
+    docs.map((doc, i) =>
+      limit(async () => {
+        const fileName = doc.metadata.source as string;
+        try {
+          console.log(`Processing ${i + 1}/${docs.length}: ${fileName}`);
 
-            })
-        ))
+          const summary = await summariseCode(doc);
+          if (!summary) throw new Error("Empty summary");
 
-    } catch (error) {
-        console.log('Indexing GithubRepo Error', error)
-        throw new Error(
-            `Failed to index github repo: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
-    }
-}
+          const embedding = await generateEmbedding(summary);
+          if (embedding.length === 0) throw new Error("Empty embedding");
 
-export const generateEmbeddings = async (docs: Document[]) => {
-    const limit = pLimit(5);
-    try {
-        const tasks = docs.map((doc) =>
-            limit(async () => {
-                const summary = await summariseCode(doc);
-                const embedding = await generateEmbedding(summary)
-                return {
-                    summary,
-                    embedding,
-                    sourceCode: doc.pageContent,
-                    fileName: doc.metadata.source as string,
-                }
-            })
-        );
-        return await Promise.all(tasks);
-    } catch (error) {
-        console.log('generate Embeddings Error', error)
-        throw new Error(
-            `Failed to generate embeddings: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
-    }
-}
+          const row = await db.sourceCodeEmbedding.create({
+            data: { summary, projectId, sourceCode: doc.pageContent, fileName },
+          });
+
+          try {
+            await db.$executeRaw`
+              UPDATE "SourceCodeEmbedding"
+              SET "summaryEmbedding" = ${JSON.stringify(embedding)}::vector
+              WHERE id = ${row.id}
+            `;
+          } catch (e) {
+            throw e;
+          }
+
+          saved++;
+        } catch (error) {
+          console.error(`FAILED ${fileName}:`, error instanceof Error ? error.message : error);
+          failed.push(fileName);
+        }
+      })
+    )
+  );
+
+  console.log(`Indexed ${saved}/${docs.length} files. Failed: ${failed.length}`);
+  return { saved, failed };
+};
