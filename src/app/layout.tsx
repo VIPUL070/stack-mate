@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import DynamicIslandToast from "@/components/dynamic-island-toast";
 import { TRPCReactProvider } from "@/trpc/react";
+import SmoothScroll from "@/components/smooth-scroll";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Show when="signed-out"></Show>
             <Show when="signed-in"></Show>
             <TooltipProvider>
-              <TRPCReactProvider>{children}</TRPCReactProvider>
+              <TRPCReactProvider>
+                <SmoothScroll>{children}</SmoothScroll>
+              </TRPCReactProvider>
               <DynamicIslandToast />
             </TooltipProvider>
           </ThemeProvider>
