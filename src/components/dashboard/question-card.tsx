@@ -86,14 +86,13 @@ const QuestionCard = () => {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[50vw]">
-          <DialogHeader>
-            <div className="flex items-center gap-2">
+        <DialogContent className="max-h-[85vh] grid-rows-[auto_1fr_auto] sm:max-w-3xl">
+          <DialogHeader className="pr-8">
+            <div className="flex items-center gap-3">
               <DialogTitle>
                 <Image src="/logo.png" alt="logo" width={32} height={32} />
               </DialogTitle>
               <Button
-                variant={`outline`}
                 onClick={saveOutput}
                 disabled={saveAnswer.isPending}
               >
@@ -102,12 +101,10 @@ const QuestionCard = () => {
             </div>
           </DialogHeader>
 
-          <MDEditor.Markdown
-            source={output}
-            className="max-w-[45vw] h-full! max-h-[40vh] overflow-scroll scrollbar-none"
-          />
-          <div className="h-4" />
-          <CodeReferences fileReferences={filesReferences} />
+          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto scrollbar-none">
+            <MDEditor.Markdown source={output} />
+            <CodeReferences fileReferences={filesReferences} />
+          </div>
 
           <Button type="button" onClick={() => setOpen(false)}>
             Close

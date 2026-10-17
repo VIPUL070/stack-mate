@@ -8,26 +8,24 @@ type LayoutProps = {
     children : ReactNode
 }
 
-const SidebarLayout = ({children}: LayoutProps) => {
+const SidebarLayout = ({ children }: LayoutProps) => {
   return (
     <SidebarProvider>
-        <AppSidebar />
-        <main className="w-full m-4">
-           <div className="flex items-center gap-2 border-sidebar-border bg-sidebar border shadow rounded-md p-2 px-4">
-              {/* <SearchBar /> */}
-              <div className="ml-auto" />
-              <ThemeToggle />
-              <UserButton />
-           </div>
-           <div className="h-4" />
-           
-           {/* main content  */}
-           <div className="border-sidebar-border bg-sidebar border shadow rounded-md overflow-y-scroll scrollbar-none h-[calc(100vh-6rem)] p-4">
-              {children}
-           </div>
-        </main>
+      <AppSidebar/>
+      <main className="flex h-svh min-w-0 flex-1 flex-col gap-4 p-4">
+        <div className="flex items-center gap-2 rounded-md border border-sidebar-border bg-sidebar p-2 px-4 shadow">
+          <div className="ml-auto" />
+          <ThemeToggle />
+          <UserButton />
+        </div>
+
+        {/* main content */}
+        <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto scrollbar-none rounded-md border border-sidebar-border bg-sidebar p-4 shadow">
+          {children}
+        </div>
+      </main>
     </SidebarProvider>
-  )
-}
+  );
+};
 
 export default SidebarLayout;

@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         suppressHydrationWarning
         className={cn("antialiased", "font-primary", spaceGrotesk.variable)}
       >
-        <body>
+        <body suppressHydrationWarning >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Show when="signed-out"></Show>
             <Show when="signed-in"></Show>

@@ -4,6 +4,7 @@ import { api } from "@/trpc/react";
 import { IssueProps } from "@/types/meeting";
 import { VideoIcon } from "lucide-react";
 import IssueCard from "./issue-card";
+import Loading from "@/app/loading";
 
 const IssuesList = ({meetingId}: IssueProps) => {
     const {data: meeting , isLoading} = api.project.getMeetingById.useQuery({meetingId}, {
@@ -11,7 +12,7 @@ const IssuesList = ({meetingId}: IssueProps) => {
     })
     if(isLoading || !meeting){
         return(
-            <div className="font-semibold">Loading Meeting...</div>
+            <Loading />
         )
     }
     return(

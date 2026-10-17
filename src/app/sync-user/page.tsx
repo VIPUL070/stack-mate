@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { syncUserToDb } from "./actions";
+import Loading from "../loading";
 
 export default function SyncUserPage() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -44,7 +45,7 @@ export default function SyncUserPage() {
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center gap-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <Loading />
       <p className="text-muted-foreground text-sm">{status}</p>
     </div>
   );

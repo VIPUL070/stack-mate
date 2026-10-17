@@ -1,22 +1,22 @@
-import { PenLine, Search, Sparkles } from "lucide-react";
-
-export const featureImage =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202026-10-12%20202116-IR4MT3aBcxYMLQdwDs8pbBMG51Uuam.png";
+import { GitCommitHorizontal, SearchCode, AudioLines } from "lucide-react";
 
 export const features = [
   {
-    icon: Search,
-    label: "Question discovery",
-    text: "Find real questions your audience asks across search, PAA, and AI queries.",
+    label: "Commit summaries",
+    text: "Every commit is condensed into a short, readable summary, so you can catch up without reading diffs.",
+    icon: GitCommitHorizontal,
+    imgUrl: '/commits.png'
   },
   {
-    icon: Sparkles,
-    label: "Best answer online",
-    text: "Structure every article for Google, LLMs, hierarchy, metadata, schema, and FAQs.",
+    label: "Ask your codebase",
+    text: "Ask \"Where did we add authentication?\" and get answers grounded in your source code, with references to the files used.",
+    icon: SearchCode,
+    imgUrl: '/questions.png'
   },
   {
-    icon: PenLine,
-    label: "Edit with intention",
-    text: "Refine and expand content with simple commands powered by real intent.",
+    label: "Meetings to issues",
+    text: "Upload a recording. It is transcribed and broken into actionable issues, each with a headline, gist, summary and timestamps.",
+    icon: AudioLines,
+    imgUrl: '/issues.png'
   },
 ];
