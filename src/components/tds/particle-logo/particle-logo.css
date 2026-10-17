@@ -1,0 +1,135 @@
+.tds-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+/* Static fallback: the logo image, shown until the canvas takes over. */
+.tds-particles__still {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(990px, 90vmin);
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+.tds-particles__canvas {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.tds-particles__canvas--on {
+  display: block;
+}
+
+.tds-particles:has(.tds-particles__canvas--on) .tds-particles__still {
+  display: none;
+}
+
+@media (max-width: 999px) {
+  .tds-particles__still {
+    display: none;
+  }
+}
+
+/* ---------- Demo hero ---------- */
+.tds-particledemo {
+  /* Palette: change these for your brand */
+  --tds-ground: #151714;
+  --tds-text: #e6e9e0;
+  --tds-accent: #d9f24a;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--tds-ground);
+  color: var(--tds-text);
+  font-family: var(--font-primary);
+}
+
+.tds-particledemo__head,
+.tds-particledemo__foot {
+  position: absolute;
+  left: 0;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.tds-particledemo__head {
+  top: 25svh;
+}
+
+.tds-particledemo__foot {
+  bottom: 0;
+  align-items: flex-end;
+}
+
+.tds-particledemo__lg {
+  flex: 4;
+}
+
+.tds-particledemo__sm {
+  display: flex;
+  flex: 2;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.tds-particledemo h3 {
+  margin: 0;
+  font-size: 37.2px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.12px;
+}
+
+.tds-particledemo p {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 13.28px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.tds-particledemo a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  font-family: var(--font-primary);
+  font-size: 13.28px;
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: uppercase;
+  pointer-events: auto;
+}
+
+.tds-particledemo a span {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 20px;
+  border-radius: 80px;
+  background: var(--tds-accent);
+  color: var(--tds-ground);
+}
+
+@media (max-width: 999px) {
+  .tds-particledemo__lg {
+    display: none;
+  }
+  .tds-particledemo__head {
+    top: 5svh;
+  }
+  .tds-particledemo h3 {
+    font-size: 32px;
+  }
+}
