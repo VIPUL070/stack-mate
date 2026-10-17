@@ -2,7 +2,6 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
 import { Simple } from "./ui/simple";
 
 export default function ThemeToggle() {
@@ -15,7 +14,7 @@ export default function ThemeToggle() {
   if (!mounted) {
     return (
       <div 
-        className="h-9 w-9 rounded-full border border-neutral-200 dark:border-neutral-800" 
+        className="h-9 w-9 rounded-full border border-neutral-200" 
         aria-hidden="true" 
       />
     );
@@ -24,8 +23,8 @@ export default function ThemeToggle() {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <button
-      className="inline-flex h-9 w-9 items-center justify-center cursor-pointer rounded-full border border-neutral-200 bg-white text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100"
+    <div
+      className="inline-flex h-8 w-8 items-center justify-center cursor-pointer rounded-full border border-neutral-200 bg-white text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100"
     >
       <Simple
         toggled={toggled}
@@ -36,6 +35,6 @@ export default function ThemeToggle() {
           setTheme(isDark ? "light" : "dark")
         }}
       />
-    </button>
+    </div>
   );
 }
