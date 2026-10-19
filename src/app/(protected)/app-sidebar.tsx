@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { SIDEBAR_APP_ITEMS } from "@/constants/sidebar";
 import useProject from "@/hooks/use-project";
+import { Project } from "@prisma/client";
 import { cn } from "cn";
 import { Plus } from "lucide-react";
 import Image from "next/image";
@@ -81,7 +82,7 @@ const AppSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {projects?.map((project) => {
+              {projects?.map((project: Project) => {
                 return (
                   <SidebarMenuItem key={project.name}>
                     <SidebarMenuButton className={cn("cursor-pointer", {
