@@ -1,4 +1,5 @@
 import Faqs from "@/components/landing/faq";
+import ForceLight from "@/components/landing/force-light";
 import { Hero } from "@/components/landing/hero";
 import Platform from "@/components/landing/platform";
 import UnlockInnovation from "@/components/landing/unlock-innovation";
@@ -19,7 +20,8 @@ const SECTIONS: ProximitySection[] = [
 export default function Home() {
 
   return (
-    <div className="relative min-h-screen">
+    <div className="light relative min-h-screen">
+      <ForceLight />
       <aside className="fixed right-0 top-1/2 z-50 hidden -translate-y-1/2 md:block">
         <ProximitySidebar sections={SECTIONS} side="right" />
       </aside>

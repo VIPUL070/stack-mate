@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowUpRight, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { fadeUp, stagger, viewport } from "@/lib/motion";
 import Image from "next/image";
